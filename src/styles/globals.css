@@ -3,10 +3,11 @@
 @tailwind utilities;
 
 :root {
-    --zrp-navy: #0b0c0c;
-    --zrp-gold: #f8c23e;
+    --zrp-navy: #002244;
+    --zrp-gold: #ffd700;
     --zrp-red: #d32f2f;
     --zrp-bg: #f0f2f5;
+    --zrp-grey: #505a5f;
     --font-main: sans-serif; /* This is the standard font family used throughout the app */
 }
 body {
@@ -16,9 +17,12 @@ body {
 }
 h1 {
     font-size: 2.5rem;
-    font-weight: 300;
-    margin-bottom: 10px;
+    font-weight: 800;
+    font-family: var(--font-main);
+    margin-bottom: 1px;
     color: var(--zrp-navy);
+    
+    
 }
 h2{
     font-size: 1.2rem;
@@ -28,4 +32,31 @@ h2{
     padding-bottom: 5px;
     border-bottom: 2px solid #b1b4b6;
 }
-    
+p {
+    font-size: 1rem;
+    margin-bottom: 0,5px;
+    color: var(--zrp-grey);
+}
+.header{
+    background: var(--zrp-navy);
+    color: var(--zrp-white);
+    padding: 15px;
+}
+.crest-placeholder {
+    @apply w-16 h-16; 
+    @apply rounded-full bg-gray-100; 
+    /* Centering: Auto margins on left/right center it */
+    @apply mx-auto mb-6; 
+    background-color: var(--zrp-navy);
+    /* Optional: Centering text inside the placeholder (if you write "LOGO" inside) */
+    @apply flex items-center justify-center text-zrp-gold font-bold text-xs uppercase;
+  }
+
+.login-panel{
+    background: white;
+    padding: 40px 20px;
+    width:457px;
+    border: 1px solid #ddd;
+    text-align: center;
+    margin-top: 20px;
+}

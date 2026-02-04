@@ -21,7 +21,7 @@ export default function ZrpButton ({ text, onClick, variant="primary" }: ZrpButt
         font-bold 
         uppercase 
         tracking-wide /* Spreads letters out slightly */
-        hover:opacity-90 
+        hover:opacity-90
         transition-all
       `}
       >{text}</button>

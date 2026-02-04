@@ -10,7 +10,7 @@ interface ZrpInputProps {
 export default function ZrpInput ({ label, placeholder, type="text", name}: ZrpInputProps) {
     return (
         <div className="mb-5">
-            <label className="block font-bold mb-2 text-lg">
+            <label className="block font-bold mb-2 text-lg uppercase">
                 {label} 
             </label> 
             <input 
