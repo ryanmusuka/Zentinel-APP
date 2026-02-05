@@ -10,7 +10,6 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: {
-
   children: React.ReactNode;
 }) {
   return (
@@ -44,6 +43,11 @@ export default function RootLayout({
           <div className="h-1 w-full bg-zrp-gold"></div>
         </header>
         {children}
+        <footer className="footer">
+          <p className="text-sm text-gray-500">
+            &copy; {new Date().getFullYear()} Zimbabwe Republic Police. All rights reserved.
+          </p>
+        </footer>
       </body>
     </html>
   );

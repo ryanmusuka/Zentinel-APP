@@ -27,13 +27,12 @@ h1 {
 h2{
     font-size: 1.2rem;
     text-transform: uppercase;
-    margin-top: 30px;
+    margin-top: 3px;
     color: grey;
     padding-bottom: 5px;
-    border-bottom: 2px solid #b1b4b6;
 }
 p {
-    font-size: 1rem;
+    font-size: 0.9rem;
     margin-bottom: 0,5px;
     color: var(--zrp-grey);
 }
@@ -43,14 +42,12 @@ p {
     padding: 15px;
 }
 .crest-placeholder {
-    @apply w-16 h-16; 
-    @apply rounded-full bg-gray-100; 
+    @apply w-16 h-16 flex items-center justify-center text-zrp-gold font-bold text-xs uppercase; 
+    @apply rounded-full bg-zrp-navy; 
     /* Centering: Auto margins on left/right center it */
     @apply mx-auto mb-6; 
-    background-color: var(--zrp-navy);
-    /* Optional: Centering text inside the placeholder (if you write "LOGO" inside) */
-    @apply flex items-center justify-center text-zrp-gold font-bold text-xs uppercase;
-  }
+    
+}
 
 .login-panel{
     background: white;
@@ -60,3 +57,45 @@ p {
     text-align: center;
     margin-top: 20px;
 }
+
+.zrp-action-btn{
+    background: var(--zrp-navy);
+    color: white;
+    @apply w-full p-4 text-lg font-bold uppercase tracking-wide /* Spreads letters out slightly */ hover:opacity-90 transition-all;
+}
+
+
+/* BIOMETRICS SCAN Animations */
+.scan-icon{
+    @apply z-10 relative w-20 h-20 mb-4;
+}
+.scan-overlay{
+    @apply fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-sm transition-opacity duration-300;
+}
+.scan-square{
+    @apply w-48 h-48 rounded-2xl flex flex-col items-center justify-center relative shadow-2xl transform transition-all duration-500 scale-100;
+}
+
+/* KEYFRAMES: The Shake Animation */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+/* ICONS: Ensure they stay centered */
+.scan-icon {
+  @apply relative w-32 h-32 z-10;
+}
+/* The Rotating Ring */
+.scan-ring {
+  @apply absolute w-32 h-32 rounded-full border-4 border-zrp-navy border-t-zrp-gold border-r-zrp-gold animate-spin;
+  
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+
