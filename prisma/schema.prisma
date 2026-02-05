@@ -1,14 +1,167 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
+// 1. SETUP
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 2. ENUMS
+enum Rank {
+  CONSTABLE
+  SGT
+  INSPECTOR
+}
+
+enum VehicleClass {
+  PASSENGER
+  PSV
+  HEAVY
+}
+
+enum InspectionResult {
+  PASS
+  FAIL
+  IMPOUND
+}
+
+enum PayStatus {
+  PENDING
+  PAID
+  AWAITING_STATION
+  OVERDUE
+}
+
+enum PayMethod {
+  DIGITAL_GATEWAY
+  STATION_CASH
+  NONE
+}
+
+enum DetectionMethod {
+  CHECKLIST
+  AI_SEARCH
+}
+
+enum PaymentStatus {
+  INITIATED
+  SUCCESS
+  FAILED
+}
+
+// 3. MODELS
+
+model User {
+  officerId        String   @id @map("Officer_ID") @db.VarChar(20)
+  fullName         String   @map("Full_Name") @db.VarChar(100)
+  passwordHash     String   @map("Password_Hash") @db.VarChar(255)
+  salt             String   @map("Salt") @db.VarChar(64)
+  biometricRefId   String?  @map("Biometric_Ref_ID") @db.VarChar(128)
+  rank             Rank     @map("Rank")
+  stationId        String   @map("Station_ID") @db.VarChar(50)
+  failedAttempts   Int      @default(0) @map("Failed_Attempts")
+  linkedDeviceUuid String?  @map("Linked_Device_UUID") @db.VarChar(64)
+  status           Boolean  @default(true) @map("Status")
+  inspections      Inspection[]
+
+  @@map("users")
+}
+
+model Vehicle {
+  vrn         String       @id @map("VRN") @db.VarChar(15)
+  vin         String?      @unique @map("VIN") @db.VarChar(17)
+  makeModel   String       @map("Make_Model") @db.VarChar(100)
+  class       VehicleClass @map("Class")
+  ownerName   String       @map("Owner_Name") @db.VarChar(100)
+  repeatCount Int          @default(0) @map("Repeat_Count")
+  inspections Inspection[]
+  tickets     Ticket[]
+
+  @@map("vehicles")
+}
+
+model Inspection {
+  inspectionId String           @id @default(uuid()) @map("Inspection_ID") @db.Uuid
+  timestamp    DateTime         @default(now()) @map("Timestamp")
+  gpsLat       Decimal          @map("GPS_Lat") @db.Decimal(10, 8)
+  gpsLong      Decimal          @map("GPS_Long") @db.Decimal(11, 8)
+  result       InspectionResult @map("Result")
+  vrn          String           @map("VRN") @db.VarChar(15)
+  vehicle      Vehicle          @relation(fields: [vrn], references: [vrn])
+  officerId    String           @map("Officer_ID") @db.VarChar(20)
+  officer      User             @relation(fields: [officerId], references: [officerId])
+  ticket       Ticket?
+
+  @@map("inspections")
+}
+
+model StatutoryCode {
+  offenseCode   String       @id @map("Offense_Code") @db.VarChar(10)
+  shortDesc     String       @map("Short_Desc") @db.VarChar(255)
+  statutoryRef  String       @map("Statutory_Ref") @db.VarChar(100)
+  fineAmount    Decimal      @map("Fine_Amount") @db.Decimal(10, 2)
+  isCritical    Boolean      @default(false) @map("Is_Critical")
+  fullLegalText String?      @map("Full_Legal_Text") @db.Text
+  aiKeywords    String?      @map("AI_Keywords") @db.Text
+  ticketLines   TicketLine[]
+
+  @@map("statutory_codes")
+}
+
+model Ticket {
+  ticketUuid   String      @id @default(uuid()) @map("Ticket_UUID") @db.Uuid
+  totalAmount  Decimal     @map("Total_Amount") @db.Decimal(10, 2)
+  payStatus    PayStatus   @default(PENDING) @map("Pay_Status")
+  payMethod    PayMethod   @default(NONE) @map("Pay_Method")
+  receiptRef   String?     @map("Receipt_Ref") @db.VarChar(100)
+  issuedAt     DateTime    @default(now()) @map("Issued_At")
+  inspectionId String      @unique @map("Inspection_ID") @db.Uuid
+  inspection   Inspection  @relation(fields: [inspectionId], references: [inspectionId])
+  vrn          String      @map("VRN") @db.VarChar(15)
+  vehicle      Vehicle     @relation(fields: [vrn], references: [vrn])
+  lines        TicketLine[]
+  payments     Payment[]
+  debtNotice   DebtNotice?
+
+  @@map("tickets")
+}
+
+model TicketLine {
+  lineId          Int             @id @default(autoincrement()) @map("Line_ID")
+  appliedFine     Decimal         @map("Applied_Fine") @db.Decimal(10, 2)
+  detectionMethod DetectionMethod @map("Detection_Method")
+  ticketUuid      String          @map("Ticket_UUID") @db.Uuid
+  ticket          Ticket          @relation(fields: [ticketUuid], references: [ticketUuid])
+  offenseCode     String          @map("Offense_Code") @db.VarChar(10)
+  offense         StatutoryCode   @relation(fields: [offenseCode], references: [offenseCode])
+
+  @@map("ticket_lines")
+}
+
+model Payment {
+  transactionId BigInt        @id @map("Transaction_ID")
+  provider      String        @map("Provider") @db.VarChar(20)
+  payerMobile   String        @map("Payer_Mobile") @db.VarChar(15)
+  gatewayRef    String        @map("Gateway_Ref") @db.VarChar(100)
+  amount        Decimal       @map("Amount") @db.Decimal(10, 2)
+  status        PaymentStatus @map("Status")
+  checksum      String        @map("Checksum") @db.VarChar(256)
+  ticketUuid    String        @map("Ticket_UUID") @db.Uuid
+  ticket        Ticket        @relation(fields: [ticketUuid], references: [ticketUuid])
+
+  @@map("payments")
+}
+
+model DebtNotice {
+  noticeId   String   @id @map("Notice_ID") @db.VarChar(50)
+  dueDate    DateTime @map("Due_Date") @db.Date
+  stationId  String   @map("Station_ID") @db.VarChar(50)
+  zinaraLock Boolean  @default(true) @map("ZINARA_Lock")
+  isCleared  Boolean  @default(false) @map("Is_Cleared")
+  ticketUuid String   @unique @map("Ticket_UUID") @db.Uuid
+  ticket     Ticket   @relation(fields: [ticketUuid], references: [ticketUuid])
+
+  @@map("debt_notices")
 }
