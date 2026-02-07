@@ -1,11 +1,12 @@
 // This interface defines the shape/blueprint of the data this button component accepts
 interface ZrpButtonProps {
     text: string;
+    disabled?: boolean;
     onClick?: () => void; // A function that gets called when the button is clicked
     variant?: "primary" | "secondary" | "danger";
 }
 
-export default function ZrpButton ({ text, onClick, variant="primary" }: ZrpButtonProps) {
+export default function ZrpButton ({ text, onClick, disabled=false, variant="primary" }: ZrpButtonProps) {
     // Logic to swap colors based on variant
     let bgClass = "bg-zrp-navy text-white"; // Default to primary navy" ;
     if (variant == "danger") {
@@ -14,6 +15,7 @@ export default function ZrpButton ({ text, onClick, variant="primary" }: ZrpButt
     return (
         <button 
             onClick={onClick}
+            disabled={disabled}
             className={`${bgClass}
         w-full 
         p-4 

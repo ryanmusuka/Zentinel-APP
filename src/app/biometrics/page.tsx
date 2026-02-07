@@ -1,6 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"; 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase'; // Direct client access
+import { verifyBiometricAvailability } from '@/lib/auth';
 import ZrpActionBtn from '../../components/ui/ZrpActionBtn';
 import ScanSquare from '@/components/ui/ScanSquare';
 
@@ -8,27 +11,47 @@ export default function BioPage() {
   const router = useRouter();
   const [activeScan, setActiveScan] = useState<"face" | "fingerprint" | null>(null);
   const [scanStatus, setScanStatus] = useState<"scanning" | "success" | "failed">("scanning");
+  const [user, setUser] = useState<any>(null);
 
-  const handleScan = (method: "face" | "fingerprint") => {
+  // 1. SECURITY CHECK: Kick them out if they skipped the login page
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/'); // Go back to login
+      } else {
+        setUser(session.user);
+      }
+    };
+    checkSession();
+  }, [router]);
+
+  // 2. The Real Scan Logic
+  const handleScan = async (method: "face" | "fingerprint") => {
+    if (!user) return;
+    
     setActiveScan(method);
     setScanStatus("scanning");
 
-    // Simulate scanning process with a timeout
-    setTimeout(() => {
-      const isSuccess = Math.random() > 0.6; // 50% chance of success
-      if (isSuccess) {
+    try {
+      // A. Verify the user exists in DB and has biometrics set up
+      await verifyBiometricAvailability(user.id);
+
+      // B. Simulate the hardware scan delay (2 seconds)
+      setTimeout(() => {
+        // Success!
         setScanStatus("success");
         setTimeout(() => {
-          router.push('/dashboard'); // Redirect to dashboard after successful scan
-        }); // Show success state for 2 seconds before redirecting
-      } else {
-        setScanStatus("failed");
-        setTimeout(() => {
-          setActiveScan(null); // Reset scan state after showing failure
-        }, 2000); // Show failure state for 2 seconds before allowing retry
-      }
-      
-    }, 2000); // Simulate a 2-second scanning process
+          router.push('/dashboard'); 
+        }, 1000); 
+      }, 2000);
+
+    } catch (err) {
+      // Failed (User has no biometrics or DB error)
+      console.error(err);
+      setScanStatus("failed");
+      setTimeout(() => setActiveScan(null), 2000);
+    }
   };
 
   return (
@@ -39,31 +62,32 @@ export default function BioPage() {
         status={scanStatus}
         isOpen={activeScan !== null}
       />
+      
       <div className="login-panel">
         <div className="crest-placeholder">ZRP</div>
         <h1>OFFICER LOGIN</h1>
-        <p>Restructed access: ZRP Traffic Patrol Officers Only.</p>
-        <h2 className="text-green-600 font-bold">Credentials Verified</h2>
-        <p className="text-sm">Complete biometric authentication to proceed...</p>
+        <p>Restricted access: ZRP Traffic Patrol Officers Only.</p>
         
-            <div className="mt-8">
-                <ZrpActionBtn 
-                    text="SCAN FACE ID"
-                    loadingLabel="Verifying Face..."
-                    onClick={() => handleScan('face')} 
-                    isProcesssing={activeScan === "face" && scanStatus === "scanning"}
-                />
-            </div>
-            <div className="mt-8">
-                <ZrpActionBtn 
-                    text="SCAN FINGERPRINT"
-                    loadingLabel="Verifying Fingerprint..."
-                    onClick={() => handleScan('fingerprint')} 
-                    disabled={activeScan !== null} // Disable button while a scan is active
-                    isProcesssing={activeScan === "fingerprint" && scanStatus === "scanning"}
-                />
-                </div>
+        <h2 className="text-green-600 font-bold mt-4">Credentials Verified</h2>
+        <p className="text-sm text-gray-500">Complete biometric authentication to proceed...</p>
         
+        <div className="mt-8 space-y-4">
+            <ZrpActionBtn 
+                text="SCAN FACE ID"
+                loadingLabel="Verifying Face..."
+                onClick={() => handleScan('face')} 
+                isProcesssing={activeScan === "face" && scanStatus === "scanning"}
+                disabled={activeScan !== null}
+            />
+            
+            <ZrpActionBtn 
+                text="SCAN FINGERPRINT"
+                loadingLabel="Verifying Fingerprint..."
+                onClick={() => handleScan('fingerprint')} 
+                disabled={activeScan !== null} 
+                isProcesssing={activeScan === "fingerprint" && scanStatus === "scanning"}
+            />
+        </div>
       </div>
 
     </main>
