@@ -4,14 +4,15 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase'; // Direct client access
 import { verifyBiometricAvailability } from '@/lib/auth';
-import ZrpActionBtn from '../../components/ui/ZrpActionBtn';
-import ScanSquare from '@/components/ui/ScanSquare';
+import ZrpActionBtn from '../../components/ui/ZrpActionBtn'; // Check your path
+import ScanSquare from '@/components/ui/ScanSquare'; // Check your path
 
 export default function BioPage() {
   const router = useRouter();
   const [activeScan, setActiveScan] = useState<"face" | "fingerprint" | null>(null);
   const [scanStatus, setScanStatus] = useState<"scanning" | "success" | "failed">("scanning");
   const [user, setUser] = useState<any>(null);
+  const [officerName, setOfficerName] = useState(""); // ADDED THIS
 
   // 1. SECURITY CHECK: Kick them out if they skipped the login page
   useEffect(() => {
@@ -21,6 +22,16 @@ export default function BioPage() {
         router.push('/'); // Go back to login
       } else {
         setUser(session.user);
+        
+        // --- ADDED: FETCH NAME ---
+        const { data } = await supabase
+          .from('users')
+          .select('Full_Name')
+          .eq('auth_id', session.user.id)
+          .single();
+          
+        if (data) setOfficerName(data.Full_Name);
+        // -------------------------
       }
     };
     checkSession();
@@ -68,8 +79,9 @@ export default function BioPage() {
         <h1>OFFICER LOGIN</h1>
         <p>Restricted access: ZRP Traffic Patrol Officers Only.</p>
         
-        <h2 className="text-green-600 font-bold mt-4">Credentials Verified</h2>
-        <p className="text-sm text-gray-500">Complete biometric authentication to proceed...</p>
+            <h2 className="text-green-600 font-bold mt-4">Credentials Verified</h2>
+        
+        <p className="text-sm text-gray-500 mt-2">Welcome {officerName} Complete biometric authentication to proceed...</p>
         
         <div className="mt-8 space-y-4">
             <ZrpActionBtn 

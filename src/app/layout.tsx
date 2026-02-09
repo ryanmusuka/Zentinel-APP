@@ -44,7 +44,7 @@ export default function RootLayout({
         </header>
         {children}
         <footer className="footer">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 justify-center flex items-center gap-2">
             &copy; {new Date().getFullYear()} Zimbabwe Republic Police. All rights reserved.
           </p>
         </footer>
