@@ -1,10 +1,10 @@
-// This is the "Parent" of your entire website
+
 import type { Metadata } from "next";
 import "../styles/globals.css";
 
 export const metadata: Metadata = {
   title: "Zentinel",
-  description: "ZRP Intelligent Traffic Enforcement",
+  description: "ZRP Intelligent Traffic Enforcement Application",
 };
 
 export default function RootLayout({
@@ -45,7 +45,7 @@ export default function RootLayout({
         {children}
         <footer className="footer">
           <p className="text-sm text-gray-500 justify-center flex items-center gap-2">
-            &copy; {new Date().getFullYear()} Zimbabwe Republic Police. All rights reserved.
+            &copy; {new Date().getFullYear()} Zimbabwe Republic Police. Unauthorised use is a criminal offence. All rights reserved.
           </p>
         </footer>
       </body>
