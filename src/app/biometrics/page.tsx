@@ -23,7 +23,7 @@ export default function BioPage() {
       } else {
         setUser(session.user);
         
-        // --- ADDED: FETCH NAME ---
+        // --- FETCH NAME ---
         const { data } = await supabase
           .from('users')
           .select('Full_Name')
@@ -31,7 +31,7 @@ export default function BioPage() {
           .single();
           
         if (data) setOfficerName(data.Full_Name);
-        // -------------------------
+        
       }
     };
     checkSession();
