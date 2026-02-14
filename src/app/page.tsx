@@ -49,7 +49,7 @@ export default function Home() {
 
         <form onSubmit={handleLogin} className="mt-8 w-full max-w-md">
             <ZrpInput 
-              label="Force Number" // LABEL KEPT AS REQUESTED
+              label="Force Number" 
               placeholder="Enter Force Number" 
               value={officerId} // Bound to new state name
               onChange={(e: any) => setOfficerId(e.target.value)}

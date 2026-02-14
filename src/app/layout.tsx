@@ -1,5 +1,6 @@
 
 import type { Metadata } from "next";
+import { TicketProvider } from "@/components/tickets/TicketContext";
 import "../styles/globals.css";
 import HeaderStatus from "@/components/ui/HeaderStatus";
 
@@ -36,7 +37,9 @@ export default function RootLayout({
           {/* GOLD LINE SEPARATOR */}
           <div className="h-1 w-full bg-zrp-gold"></div>
         </header>
+        <TicketProvider>
         {children}
+        </TicketProvider>
         <footer className="footer">
           <p className="text-sm text-gray-500 text-center px-6 mx-auto leading-relaxed">
             &copy; {new Date().getFullYear()} Zimbabwe Republic Police. Unauthorised use is a criminal offence. All rights reserved.

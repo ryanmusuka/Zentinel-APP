@@ -1,9 +1,26 @@
 "use client";
-import React, { useState } from 'react';
+import React from 'react'; // Removed useState, we don't need it locally anymore
 import { useRouter } from 'next/navigation';
+import ZrpButton from '@/components/ui/ZrpButton';
+import { useTicket } from '@/components/tickets/TicketContext'; // <--- IMPORT THIS
 
-// --- ZRP STATUTORY INSPECTION CHECKLIST ---
-// Cleaned up labels: Removed redundant "Missing/Defective" text
+// --- PRICES & CODES (This would ideally be in a separate file, but works here) ---
+const OFFENSE_META: Record<string, { price: number, code: string }> = {
+  "EQ_TRIANGLES": { price: 20, code: "ZRP-EQ-01" },
+  "EQ_EXTINGUISHER": { price: 15, code: "ZRP-EQ-04" },
+  "EQ_SPARE": { price: 20, code: "ZRP-EQ-09" },
+  "EQ_REFLECTORS": { price: 10, code: "ZRP-EQ-12" },
+  "LT_HEADLIGHTS": { price: 20, code: "ZRP-LT-01" },
+  "LT_BRAKE": { price: 20, code: "ZRP-LT-05" },
+  "LT_INDICATORS": { price: 15, code: "ZRP-LT-08" },
+  "LT_PLATE": { price: 10, code: "ZRP-LT-10" },
+  "LT_HORN": { price: 10, code: "ZRP-LT-15" },
+  "BD_TIRES": { price: 30, code: "ZRP-BD-02" },
+  "BD_WINDSCREEN": { price: 20, code: "ZRP-BD-05" },
+  "BD_WIPERS": { price: 10, code: "ZRP-BD-08" },
+  "BD_EXHAUST": { price: 10, code: "ZRP-BD-11" },
+};
+
 const INSPECTION_CATEGORIES = [
   {
     title: "EMERGENCY EQUIPMENT",
@@ -38,26 +55,40 @@ const INSPECTION_CATEGORIES = [
 export default function InspectionPage() {
   const router = useRouter();
   
-  // State to track which defects have been selected
-  const [defects, setDefects] = useState<string[]>([]);
+  // 1. USE GLOBAL STATE INSTEAD OF LOCAL STATE
+  const { activeOffenses, addOffense, removeOffense } = useTicket(); 
 
-  // Toggle a defect on or off
-  const toggleDefect = (id: string) => {
-    setDefects(prev => 
-      prev.includes(id) 
-        ? prev.filter(item => item !== id) // Remove if already selected
-        : [...prev, id] // Add if not selected
-    );
+  // 2. HELPER: Check if an item is already in the global clipboard
+  const isDefectSelected = (id: string) => {
+    return activeOffenses.some(offense => offense.id === id);
+  };
+
+  const toggleDefect = (item: { id: string, label: string }) => {
+    if (isDefectSelected(item.id)) {
+      // If it's already there, REMOVE it
+      removeOffense(item.id);
+    } else {
+      // If it's not there, ADD it with full details
+      const meta = OFFENSE_META[item.id] || { price: 20, code: "ZRP-GEN" };
+      
+      addOffense({
+        id: item.id,
+        label: item.label,
+        price: meta.price,
+        code: meta.code,
+        type: 'INSPECTION',
+        timestamp: new Date()
+      });
+    }
   };
 
   const handleComplete = () => {
-    if (defects.length === 0) {
+    if (activeOffenses.length === 0) {
       console.log("Vehicle Cleared. Returning to dashboard...");
       router.push("/dashboard");
     } else {
-      console.log(`Generating Ticket for ${defects.length} offenses...`, defects);
-      // Route to Form 265
-      router.push("/ticket"); 
+      // Data is already in Context, just navigate!
+      router.push("/TicketSummary"); 
     }
   };
 
@@ -83,11 +114,14 @@ export default function InspectionPage() {
 
             <div className="flex flex-col gap-3">
               {category.items.map((item) => {
-                const isSelected = defects.includes(item.id);
+                // Check against global state
+                const isSelected = isDefectSelected(item.id);
+                
                 return (
                   <div 
                     key={item.id}
-                    onClick={() => toggleDefect(item.id)}
+                    // Pass the whole item object so we have the label
+                    onClick={() => toggleDefect(item)}
                     className={`
                       flex items-center justify-between p-5 border-[3px] transition-all cursor-pointer active:scale-[0.98]
                       ${isSelected 
@@ -116,6 +150,10 @@ export default function InspectionPage() {
           </div>
         ))}
       </div>
+      
+      <div className="flex flex-col gap-4 mt-2"> 
+        <ZrpButton text="+ ADD TRAFFIC OFFENSE" onClick={() => router.push("/offense")} variant="outline" />            
+      </div>
 
       {/* STICKY BOTTOM ACTION BAR */}
       <div className="fixed bottom-0 left-0 w-full bg-white border-t-4 border-gray-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-20">
@@ -131,13 +169,13 @@ export default function InspectionPage() {
             onClick={handleComplete}
             className={`
               flex-1 py-4 font-black text-lg uppercase border-[3px] transition-colors shadow-md active:scale-[0.98]
-              ${defects.length === 0 
+              ${activeOffenses.length === 0 
                 ? 'bg-[#0f6b36] border-[#0a4a25] text-white' // Green if clear
                 : 'bg-[#c23628] border-[#8c2218] text-white' // Red if defects found
               }
             `}
           >
-            {defects.length === 0 ? "VEHICLE CLEAR" : `ISSUE TICKET (${defects.length})`}
+            {activeOffenses.length === 0 ? "VEHICLE CLEAR" : `PROCEED (${activeOffenses.length})`}
           </button>
         </div>
       </div>

@@ -16,8 +16,8 @@ export default function ZrpInput ({
     placeholder, 
     type="text", 
     name,
-    value,      // Destructured here
-    onChange    // Destructured here
+    value,      
+    onChange    
 }: ZrpInputProps) {
     return (
         <div className="mb-5 text-left">
@@ -30,9 +30,9 @@ export default function ZrpInput ({
                 placeholder={placeholder}
                 value={value}       // Connected to state
                 onChange={onChange} // Connected to state handler
-                className="w-full p-4 border-[3px] border-zrp-navy /* ZRP Navy Border */
-                rounded-none /* SHARP EDGES = AUTHORITY */
-                focus:outline-none focus:ring-4 focus:ring-zrp-gold /* Gold Ring on Focus */
+                className="w-full p-4 border-[3px] border-zrp-navy
+                rounded-none 
+                focus:outline-none focus:ring-4 focus:ring-zrp-gold 
                 text-black bg-white"
             />  
         </div>
